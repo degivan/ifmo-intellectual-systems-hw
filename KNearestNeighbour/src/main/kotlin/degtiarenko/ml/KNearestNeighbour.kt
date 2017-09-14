@@ -6,25 +6,26 @@ import java.util.*
 val euclideanMetric = { x: DataItem, y: DataItem -> sqrt(pow(x.x - y.x, 2.0) + pow(y.y - x.y, 2.0)) }
 val manhattanMetric = { x: DataItem, y: DataItem -> abs(x.x - y.x) + abs(y.y - x.y) }
 
-val metrics = listOf(euclideanMetric, manhattanMetric)
+val metrics = listOf(Pair(euclideanMetric, "euclid"), Pair(manhattanMetric, "manhattan"))
 
 fun main(args: Array<String>) {
     val items = Thread.currentThread().contextClassLoader.getResource("chips.txt")
-            .readText().split("\n").drop(1).dropLast(1)
+            .readText().split("\n", "\r")
+            .filter { s -> !s.isEmpty() }
             .map { s -> s.split(",") }
             .map { l -> DataItem(l[0], l[1], l[2]) }
             .toList()
     Collections.shuffle(items)
 
-    for (metric in metrics) {
+    for ((metricFun, metricName) in metrics) {
         CrossValidator(items).forEachTestSet { trainList, testList ->
-            trainWithMetric(trainList, testList, metric)
+            trainWithMetric(trainList, testList, metricFun, metricName)
         }
     }
 }
 
 fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
-                    metric: (DataItem, DataItem) -> Double) {
+                    metric: (DataItem, DataItem) -> Double, metricName: String) {
     val results = mutableMapOf<Int, Double>()
     for (k in 1..trainList.size / 2) {
         CrossValidator(trainList).forEachTestSet { trainList2, testList2 ->
@@ -33,7 +34,7 @@ fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
     }
     val goodK = results.maxBy { e -> e.value }!!.key
     val testResult = testWithPredictor(testList, Predictor(trainList, goodK, metric))
-    println("Result for metric " + metric.toString()
+    println("Result for metric " + metricName
             + " is: " + testResult
             + " with k: " + goodK)
 }
@@ -51,7 +52,7 @@ fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
 }
 
 fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
-    val rightAnswers = testList.filterIndexed{ i, item -> answers[i] == item.category}
+    val rightAnswers = testList.filterIndexed { i, item -> answers[i] == item.category }
             .size.toDouble()
     return rightAnswers / testList.size
 }
