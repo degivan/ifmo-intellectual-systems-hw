@@ -51,11 +51,7 @@ fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
 }
 
 fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
-    var rightAnswers = 0.0
-    for (i in 0..testList.size - 1) {
-        if (answers[i] == testList[i].category) {
-            rightAnswers++
-        }
-    }
+    val rightAnswers = testList.filterIndexed{ i, item -> answers[i] == item.category}
+            .size.toDouble()
     return rightAnswers / testList.size
 }
