@@ -51,5 +51,11 @@ fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
 }
 
 fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
-    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
+    var rightAnswers = 0.0
+    for (i in 0..testList.size - 1) {
+        if (answers[i] == testList[i].category) {
+            rightAnswers++
+        }
+    }
+    return rightAnswers / testList.size
 }
