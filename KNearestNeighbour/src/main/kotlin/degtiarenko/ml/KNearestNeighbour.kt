@@ -16,13 +16,40 @@ fun main(args: Array<String>) {
             .toList()
     Collections.shuffle(items)
 
-    CrossValidator(items).forEachTestSet { trainList, testList -> /*do something useful*/ }
+    for (metric in metrics) {
+        CrossValidator(items).forEachTestSet { trainList, testList ->
+            trainWithMetric(trainList, testList, metric)
+        }
+    }
 }
 
-fun kernelFun(x: Double): Double {
-    return if (Math.abs(x) > 1) {
-        0.0
-    } else {
-        1 - Math.abs(x)
+fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
+                    metric: (DataItem, DataItem) -> Double) {
+    val results = mutableMapOf<Int, Double>()
+    for (k in 1..trainList.size / 2) {
+        CrossValidator(trainList).forEachTestSet { trainList2, testList2 ->
+            results.put(k, trainWithK(trainList2, testList2, metric, k))
+        }
     }
+    val goodK = results.maxBy { e -> e.value }!!.key
+    val testResult = testWithPredictor(testList, Predictor(trainList, goodK, metric))
+    println("Result for metric " + metric.toString()
+            + " is: " + testResult
+            + " with k: " + goodK)
+}
+
+fun trainWithK(trainList: List<DataItem>, testList: List<DataItem>,
+               metric: (DataItem, DataItem) -> Double, k: Int): Double {
+    val predictor = Predictor(trainList, k, metric)
+
+    return testWithPredictor(testList, predictor)
+}
+
+fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
+    val answers = testList.map { item -> predictor.predict(item) }
+    return computeAccuracy(answers, testList)
+}
+
+fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
+    TODO("not implemented") //To change body of created functions use File | Settings | File Templates.
 }
