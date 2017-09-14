@@ -6,10 +6,10 @@ import java.util.stream.Collectors
 private val FOLD_AMOUNT = 5
 
 class CrossValidator(items: List<DataItem>) {
-    private val partition = Lists.partition(items, items.size / FOLD_AMOUNT + 1)
+    private val partition = Lists.partition(items, items.size / FOLD_AMOUNT)
 
     fun forEachTestSet(consumer: (List<DataItem>, List<DataItem>) -> Unit) {
-        for(i in 0..FOLD_AMOUNT - 1) {
+        for(i in 0 until FOLD_AMOUNT) {
             val trainItems = getTrainItems(i)
             val testItems = getTestItems(i)
             consumer(trainItems, testItems)
