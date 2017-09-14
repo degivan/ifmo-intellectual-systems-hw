@@ -9,7 +9,7 @@ val manhattanMetric = { x: DataItem, y: DataItem -> abs(x.x - y.x) + abs(y.y - x
 val metrics = listOf(euclideanMetric, manhattanMetric)
 
 fun main(args: Array<String>) {
-    val items = ClassLoader.getSystemClassLoader().getResource("chips.txt")
+    val items = Thread.currentThread().contextClassLoader.getResource("chips.txt")
             .readText().split("\n").drop(1).dropLast(1)
             .map { s -> s.split(",") }
             .map { l -> DataItem(l[0], l[1], l[2]) }
