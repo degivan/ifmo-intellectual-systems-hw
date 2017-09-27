@@ -25,7 +25,7 @@ fun main(args: Array<String>) {
 }
 
 fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
-                    metric: (DataItem, DataItem) -> Double, metricName: String) {
+                    metric: (DataItem, DataItem) -> Double, metricName: String): Pair<Double, Int> {
     val results = mutableMapOf<Int, Double>()
     for (k in 1..trainList.size / 2) {
         CrossValidator(trainList).forEachTestSet { trainList2, testList2 ->
@@ -37,6 +37,7 @@ fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
     println("Result for metric " + metricName
             + " is: " + testResult
             + " with k: " + goodK)
+    return Pair(testResult, goodK)
 }
 
 fun trainWithK(trainList: List<DataItem>, testList: List<DataItem>,
