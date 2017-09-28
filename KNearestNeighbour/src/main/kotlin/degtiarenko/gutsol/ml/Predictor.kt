@@ -1,4 +1,4 @@
-package degtiarenko.ml
+package degtiarenko.gutsol.ml
 
 class Predictor(val trainList: List<DataItem>, val k: Int, val metric: (DataItem, DataItem) -> Double) {
 
