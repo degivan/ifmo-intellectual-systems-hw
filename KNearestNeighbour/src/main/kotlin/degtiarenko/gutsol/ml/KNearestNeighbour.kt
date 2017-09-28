@@ -1,4 +1,4 @@
-package degtiarenko.ml
+package degtiarenko.gutsol.ml
 
 import java.lang.Math.*
 import java.util.*
@@ -7,6 +7,9 @@ val euclideanMetric = { x: DataItem, y: DataItem -> sqrt(pow(x.x - y.x, 2.0) + p
 val manhattanMetric = { x: DataItem, y: DataItem -> abs(x.x - y.x) + abs(y.y - x.y) }
 
 val metrics = listOf(Pair(euclideanMetric, "euclid"), Pair(manhattanMetric, "manhattan"))
+
+var bestPredictor: Predictor? = null
+var bestAccuracy = 0.0
 
 fun main(args: Array<String>) {
     val items = Thread.currentThread().contextClassLoader.getResource("chips.txt")
@@ -22,6 +25,8 @@ fun main(args: Array<String>) {
             trainWithMetric(trainList, testList, metricFun, metricName)
         }
     }
+    val visualizer = Visualizer(items)
+    visualizer.drawPlot(bestPredictor as Predictor, "out")
 }
 
 fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
@@ -43,13 +48,17 @@ fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
 fun trainWithK(trainList: List<DataItem>, testList: List<DataItem>,
                metric: (DataItem, DataItem) -> Double, k: Int): Double {
     val predictor = Predictor(trainList, k, metric)
-
     return testWithPredictor(testList, predictor)
 }
 
 fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
     val answers = testList.map { item -> predictor.predict(item) }
-    return computeAccuracy(answers, testList)
+    val accuracy = computeAccuracy(answers, testList)
+    if (bestPredictor == null || bestAccuracy < accuracy) {
+        bestAccuracy = accuracy
+        bestPredictor = predictor
+    }
+    return accuracy
 }
 
 fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
