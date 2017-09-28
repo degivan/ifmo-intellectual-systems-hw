@@ -1,7 +1,6 @@
 package degtiarenko.ml
 
-class DataItem(x: String, y: String, category: String) {
-    val x = x.toDouble()
-    val y = y.toDouble()
-    val category = category.toInt()
+class DataItem(val x: Double, val y: Double, val category: Int) {
+
+    constructor(x: String, y: String, category: String): this(x.toDouble(), y.toDouble(), category.toInt())
 }
