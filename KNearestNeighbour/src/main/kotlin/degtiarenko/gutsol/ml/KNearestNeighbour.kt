@@ -34,7 +34,9 @@ fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
     val results = mutableMapOf<Int, Double>()
     for (k in 1..trainList.size / 2) {
         CrossValidator(trainList).forEachTestSet { trainList2, testList2 ->
-            results.put(k, trainWithK(trainList2, testList2, metric, k))
+            results.putIfAbsent(k, 0.0)
+            results.merge(k, trainWithK(trainList2, testList2, metric, k),
+                    { acc1, acc2 -> Math.max(acc1, acc2) })
         }
     }
     val goodK = results.maxBy { e -> e.value }!!.key
@@ -42,6 +44,10 @@ fun trainWithMetric(trainList: List<DataItem>, testList: List<DataItem>,
     println("Result for metric " + metricName
             + " is: " + testResult
             + " with k: " + goodK)
+    if (bestPredictor == null || bestAccuracy < testResult) {
+        bestAccuracy = testResult
+        bestPredictor = Predictor(trainList, goodK, metric)
+    }
     return Pair(testResult, goodK)
 }
 
@@ -53,12 +59,8 @@ fun trainWithK(trainList: List<DataItem>, testList: List<DataItem>,
 
 fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
     val answers = testList.map { item -> predictor.predict(item) }
-    val accuracy = computeAccuracy(answers, testList)
-    if (bestPredictor == null || bestAccuracy < accuracy) {
-        bestAccuracy = accuracy
-        bestPredictor = predictor
-    }
-    return accuracy
+
+    return computeAccuracy(answers, testList)
 }
 
 fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
