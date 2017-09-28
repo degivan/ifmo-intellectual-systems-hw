@@ -1,4 +1,4 @@
-package degtiarenko.ml
+package degtiarenko.gutsol.ml
 
 import java.lang.Math.*
 import java.util.*

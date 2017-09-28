@@ -1,4 +1,4 @@
-package degtiarenko.ml
+package degtiarenko.gutsol.ml
 
 import de.erichseifert.gral.data.DataSeries
 import de.erichseifert.gral.data.DataTable

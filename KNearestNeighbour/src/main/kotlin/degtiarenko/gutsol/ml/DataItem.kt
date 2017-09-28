@@ -1,4 +1,4 @@
-package degtiarenko.ml
+package degtiarenko.gutsol.ml
 
 class DataItem(val x: Double, val y: Double, val category: Int) {
 
