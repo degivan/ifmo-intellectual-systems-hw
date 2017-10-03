@@ -1,7 +1,5 @@
 package degtiarenko.gutsol.ml
 
-import com.sun.xml.internal.fastinfoset.util.StringArray
-
 class ConfigGroup(val spaceTransforms: Iterable<Pair<(DataItem) -> DataItem, String>>,
                   val metrics: Iterable<Pair<(DataItem, DataItem) -> Double, String>>,
                   val kernels: Iterable<Pair<(Double) -> Double, String>>,

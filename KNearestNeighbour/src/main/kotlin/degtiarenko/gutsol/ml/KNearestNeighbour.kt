@@ -5,23 +5,24 @@ import java.util.*
 
 val euclideanMetric = { x: DataItem, y: DataItem -> sqrt(x.coords.zip(y.coords, { a, b -> pow(a - b, 2.0) }).sum()) }
 val manhattanMetric = { x: DataItem, y: DataItem -> x.coords.zip(y.coords, { a, b -> abs(a - b) }).sum() }
+val thirdDegreeMetric = { x: DataItem, y: DataItem -> pow(x.coords.zip(y.coords, { a, b -> pow(a - b, 3.0)}).sum(), 1.0 / 3.0)}
 
-val metrics = listOf(Pair(euclideanMetric, "euclid"), Pair(manhattanMetric, "manhattan"))
+val metrics = listOf(Pair(euclideanMetric, "euclid"), Pair(manhattanMetric, "manhattan"),
+                     Pair(thirdDegreeMetric, "3rd-degree"))
 
 val baseTransform = { p: DataItem -> p }
 val circleTransform = { p: DataItem ->
     DataItem(doubleArrayOf(p.coords[0], p.coords[1],
-            sqrt(pow(p.coords[0] + p.coords[1], 2.0))), p.category)
+            sqrt(pow(p.coords[0], 2.0) + pow(p.coords[1], 2.0))), p.category)
 }
 
 val spaceTransforms = listOf(Pair(baseTransform, "base"), Pair(circleTransform, "circle"))
 
 val constantKernel = { x: Double -> if (abs(x) > 1.0) 0.0 else 1.0 }
+val linearKernel =  { x: Double -> if (abs(x) > 1.0) 0.0 else 1.0 - abs(x)}
 
-val kernels = listOf(Pair(constantKernel, "constant"))
+val kernels = listOf(Pair(constantKernel, "constant"), Pair(linearKernel, "linear"))
 
-//var bestPredictor: Predictor? = null
-//var bestAccuracy = 0.0
 
 fun main(args: Array<String>) {
     val items = Thread.currentThread().contextClassLoader.getResource("chips.txt")
