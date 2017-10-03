@@ -22,7 +22,7 @@ class Predictor(val trainList: List<DataItem>, val k: Int, val metric: (DataItem
         return if (Math.abs(x) > 1) {
             0.0
         } else {
-            1.0 //- Math.abs(x) TODO:померить,что лучше
+            1.0 //- Math.abs(coords) TODO:померить,что лучше
         }
     }
 }

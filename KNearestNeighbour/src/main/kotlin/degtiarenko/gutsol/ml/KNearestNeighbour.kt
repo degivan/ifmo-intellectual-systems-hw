@@ -3,8 +3,8 @@ package degtiarenko.gutsol.ml
 import java.lang.Math.*
 import java.util.*
 
-val euclideanMetric = { x: DataItem, y: DataItem -> sqrt(pow(x.x - y.x, 2.0) + pow(y.y - x.y, 2.0)) }
-val manhattanMetric = { x: DataItem, y: DataItem -> abs(x.x - y.x) + abs(y.y - x.y) }
+val euclideanMetric = { x: DataItem, y: DataItem -> sqrt(x.coords.zip(y.coords, { a, b -> pow(a - b, 2.0) }).sum()) }
+val manhattanMetric = { x: DataItem, y: DataItem -> x.coords.zip(y.coords, { a, b -> abs(a - b) }).sum() }
 
 val metrics = listOf(Pair(euclideanMetric, "euclid"), Pair(manhattanMetric, "manhattan"))
 
