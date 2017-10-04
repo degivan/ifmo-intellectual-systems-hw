@@ -36,7 +36,7 @@ fun main(args: Array<String>) {
 
     val bestPredictor: Pair<Predictor?, Double> = getBestPredictor(configs, items, spaceTransforms,
             { conf, trans, itemz -> getBestPredictorInSpace(conf, trans, itemz) })
-    println("Best accuracy is " + bestPredictor.second + " with predictor: " + bestPredictor.first!!.name)
+    println("Best F1-score is " + bestPredictor.second + " with predictor: " + bestPredictor.first!!.name)
     val visualizer = Visualizer(items)
     visualizer.drawPlot(bestPredictor.first as Predictor, "out")
 }
@@ -44,17 +44,17 @@ fun main(args: Array<String>) {
 private fun <T> getBestPredictor(configs: ConfigGroup, items: List<DataItem>, paramVariants: List<T>,
                                  nextFun: (ConfigGroup, T, List<DataItem>) -> Pair<Predictor?, Double>): Pair<Predictor?, Double> {
     var bestPredictor: Predictor? = null
-    var bestAccuracy = 0.0
+    var bestScore = 0.0
     for (paramVar in paramVariants) {
         CrossValidator(items).forEachTestSet { trainList, testList ->
             val predictor = nextFun(configs, paramVar, trainList)
-            if (testWithPredictor(testList, predictor.first!!) > bestAccuracy) {
+            if (testWithPredictor(testList, predictor.first!!) > bestScore) {
                 bestPredictor = predictor.first
-                bestAccuracy = testWithPredictor(testList, predictor.first!!)
+                bestScore = testWithPredictor(testList, predictor.first!!)
             }
         }
     }
-    return Pair(bestPredictor, bestAccuracy)
+    return Pair(bestPredictor, bestScore)
 }
 
 fun getBestPredictorInSpace(configs: ConfigGroup, spaceTransform: Pair<(DataItem) -> DataItem, String>,
@@ -84,11 +84,20 @@ fun getBestPredictorWithKernel(configs: ConfigGroup, kernel: Pair<(Double) -> Do
 fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
     val answers = testList.map { item -> predictor.predict(item) }
 
-    return computeAccuracy(answers, testList)
+    return computeF1Score(answers, testList)
 }
 
-fun computeAccuracy(answers: List<Int>, testList: List<DataItem>): Double {
-    val rightAnswers = testList.filterIndexed { i, item -> answers[i] == item.category }
-            .size.toDouble()
-    return rightAnswers / testList.size
+fun computeF1Score(answers: List<Int>, testList: List<DataItem>): Double {
+    val compared = answers.zip(testList)
+    val positiveAnswers = compared.filter { (result) -> result == 1}
+    val tpAnswers = positiveAnswers.filter { (result, expected) -> result == expected.category }
+    val fnAnswers =  compared.filter { (result, expected) -> result == 0 && expected.category == 1 }
+
+    val tpSize = tpAnswers.size.toDouble()
+    val pSize = positiveAnswers.size.toDouble()
+    val fnSize = fnAnswers.size.toDouble()
+    val precision = tpSize / pSize
+    val recall = tpSize / (tpSize + fnSize)
+
+    return 2 * precision * recall / (precision + recall)
 }
