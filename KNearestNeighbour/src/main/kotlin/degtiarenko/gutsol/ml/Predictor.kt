@@ -22,12 +22,4 @@ class Predictor(trainList: List<DataItem>, val spaceTransform: (DataItem) -> Dat
         return kernel(metric(item, neighbour) / metric(item, kNeighbour))
     }
 
-    private fun kernelFun(x: Double): Double {
-        return if (Math.abs(x) > 1) {
-            0.0
-        } else {
-            1.0 //- Math.abs(coords) TODO:померить,что лучше
-        }
-    }
-
 }
