@@ -36,9 +36,9 @@ class Visualizer(trainSet: List<DataItem>) {
         val yellowSamplesData = DataTable(Double::class.javaObjectType, Double::class.javaObjectType)
         for (dataItem in trainSet) {
             if (dataItem.category == 0) {
-                blueSamplesData.add(dataItem.x, dataItem.y)
+                blueSamplesData.add(dataItem.coords[0], dataItem.coords[1])
             } else {
-                yellowSamplesData.add(dataItem.x, dataItem.y)
+                yellowSamplesData.add(dataItem.coords[0], dataItem.coords[1])
             }
         }
         blueSamples = DataSeries(blueSamplesData)
@@ -51,7 +51,7 @@ class Visualizer(trainSet: List<DataItem>) {
         for (i in 0..POINTS_COUNT) {
             val x = MIN_X + rnd.nextDouble() * WIDTH
             val y = MIN_Y + rnd.nextDouble() * HEIGHT
-            val dataItem = DataItem(x, y, 1)
+            val dataItem = DataItem(doubleArrayOf(x, y), 1)
             if (predictor.predict(dataItem) > 0) {
                 yellowData.add(x, y)
             } else {
