@@ -32,7 +32,8 @@ fun main(args: Array<String>) {
             .map { l -> DataItem(l[0], l[1], l[2]) }
             .toList()
     Collections.shuffle(items)
-    val configs = ConfigGroup(spaceTransforms, metrics, kernels, IntArray(items.size / 4, { i -> i + 3 }))
+    val configs = ConfigGroup(spaceTransforms, metrics, kernels,
+            IntArray(sqrt(items.size.toDouble()).toInt(), { i -> i + 3 }))
 
     val bestPredictor: Pair<Predictor?, Double> = getBestPredictor(configs, items, spaceTransforms,
             { conf, trans, itemz -> getBestPredictorInSpace(conf, trans, itemz) })
