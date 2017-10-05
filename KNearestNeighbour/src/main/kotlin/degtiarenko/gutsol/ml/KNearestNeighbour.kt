@@ -5,10 +5,10 @@ import java.util.*
 
 val euclideanMetric = { x: DataItem, y: DataItem -> sqrt(x.coords.zip(y.coords, { a, b -> pow(a - b, 2.0) }).sum()) }
 val manhattanMetric = { x: DataItem, y: DataItem -> x.coords.zip(y.coords, { a, b -> abs(a - b) }).sum() }
-val thirdDegreeMetric = { x: DataItem, y: DataItem -> pow(x.coords.zip(y.coords, { a, b -> pow(a - b, 3.0)}).sum(), 1.0 / 3.0)}
+val thirdDegreeMetric = { x: DataItem, y: DataItem -> pow(x.coords.zip(y.coords, { a, b -> pow(a - b, 3.0) }).sum(), 1.0 / 3.0) }
 
 val metrics = listOf(Pair(euclideanMetric, "euclid"), Pair(manhattanMetric, "manhattan"),
-                     Pair(thirdDegreeMetric, "3rd-degree"))
+        Pair(thirdDegreeMetric, "3rd-degree"))
 
 val baseTransform = { p: DataItem -> p }
 val circleTransform = { p: DataItem ->
@@ -18,10 +18,13 @@ val circleTransform = { p: DataItem ->
 
 val spaceTransforms = listOf(Pair(baseTransform, "base"), Pair(circleTransform, "circle"))
 
-val constantKernel = { x: Double -> if (abs(x) > 1.0) 0.0 else 1.0 }
-val linearKernel =  { x: Double -> if (abs(x) > 1.0) 0.0 else 1.0 - abs(x)}
+val uniformKernel = { x: Double -> if (abs(x) > 1.0) 0.0 else 1.0 }
+val triangularKernel = { x: Double -> if (abs(x) > 1.0) 0.0 else 1.0 - abs(x) }
+val parabolicKernel = { x: Double -> if (abs(x) > 1.0) 0.0 else 0.75 * (1 - x * x) }
+val biweightKernel = { x: Double -> if (abs(x) > 1.0) 0.0 else 0.9375 * (1 - x * x) * (1 - x * x)}
 
-val kernels = listOf(Pair(constantKernel, "constant"), Pair(linearKernel, "linear"))
+val kernels = listOf(Pair(uniformKernel, "uniform"), Pair(triangularKernel, "triangular"),
+                     Pair(parabolicKernel, "parabolic"), Pair(biweightKernel, "biweight"))
 
 
 fun main(args: Array<String>) {
@@ -33,7 +36,7 @@ fun main(args: Array<String>) {
             .toList()
     Collections.shuffle(items)
     val configs = ConfigGroup(spaceTransforms, metrics, kernels,
-            IntArray(sqrt(items.size.toDouble()).toInt(), { i -> i + 3 }))
+            IntArray(sqrt(items.size.toDouble()).toInt(), { i -> i + 2 }))
 
     val bestPredictor: Pair<Predictor?, Double> = getBestPredictor(configs, items, spaceTransforms,
             { conf, trans, itemz -> getBestPredictorInSpace(conf, trans, itemz) })
@@ -90,9 +93,9 @@ fun testWithPredictor(testList: List<DataItem>, predictor: Predictor): Double {
 
 fun computeF1Score(answers: List<Int>, testList: List<DataItem>): Double {
     val compared = answers.zip(testList)
-    val positiveAnswers = compared.filter { (result) -> result == 1}
+    val positiveAnswers = compared.filter { (result) -> result == 1 }
     val tpAnswers = positiveAnswers.filter { (result, expected) -> result == expected.category }
-    val fnAnswers =  compared.filter { (result, expected) -> result == 0 && expected.category == 1 }
+    val fnAnswers = compared.filter { (result, expected) -> result == 0 && expected.category == 1 }
 
     val tpSize = tpAnswers.size.toDouble()
     val pSize = positiveAnswers.size.toDouble()

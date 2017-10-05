@@ -3,7 +3,7 @@ package degtiarenko.gutsol.ml
 import com.google.common.collect.Lists
 import java.util.stream.Collectors
 
-private val FOLD_AMOUNT = 9
+private val FOLD_AMOUNT = 6
 
 class CrossValidator(items: List<DataItem>) {
     private val partition = Lists.partition(items, items.size / FOLD_AMOUNT)
