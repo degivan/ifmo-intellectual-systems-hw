@@ -32,14 +32,18 @@ def step_gradient(b1, b2, m, points, learning_rate):
 
 
 def run(learning_rate, num_iterations, points):
-    [b1, b2, m] = [60, 30000, 100000]
+    [b1, b2, m] = [1, 1, 1]
     for i in range(num_iterations):
         [b1, b2, m] = step_gradient(b1, b2, m, array(points), learning_rate)
     return [b1, b2, m]
 
 if __name__ == '__main__':
     points = genfromtxt("../../prices.txt", dtype=[float64, float64, float64], delimiter=",")
-    print(compute_error(60, 30000, 100000, array(points)))
-    [b1, b2, m] = run(1e-6, 10 ** 5, points)
+    max_area = max([x[0] for x in points])
+    max_rooms = max([x[1] for x in points])
+    max_price = max([x[2] for x in points])
+    points = [(x[0] / max_area, x[1] / max_rooms, x[2] / max_price) for x in points]
+    print(compute_error(1, 1, 1, array(points)))
+    [b1, b2, m] = run(1e-3, 10 ** 5, points)
     print(b1, b2, m)
     print(compute_error(b1, b2, m, array(points)))
