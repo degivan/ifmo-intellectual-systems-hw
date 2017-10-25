@@ -8,7 +8,7 @@ def train(train_data):
     mail_spam = 0
     subj_words_count = [0, 0]
     text_words_count = [0, 0]
-    subject_words = [{},{}]
+    subject_words = [{}, {}]
     text_words = [{}, {}]
     for email in train_data:
         positive = email.label == 'SPAM'
@@ -34,10 +34,10 @@ class Classifier(object):
         self.text_wc = text_wc
         self.text_w = text_w
 
-    def classify(self, email, coeff):
-        is_spam = self.cond_email(email, True, coeff)
-        is_ham = self.cond_email(email, False, coeff)
-        if is_spam > is_ham:
+    def classify(self, email, subj_coeff=3.0, trust_coeff=1.05):
+        is_spam = self.cond_email(email, True, subj_coeff)
+        is_ham = self.cond_email(email, False, subj_coeff)
+        if trust_coeff * is_spam > is_ham:
             return 'SPAM'
         else:
             return 'HAM'
@@ -86,11 +86,18 @@ def create_email_obj(title, content):
 
 
 def test(classifier, test_data):
-    correct = 0
-    total = len(test_data)
+    correct_counts = {'HAM': 0, 'SPAM': 0}
+    incorrect_counts = {'HAM': 0, 'SPAM': 0}
     for email in test_data:
-        correct += email.label == classifier.classify(email, 3.0)
-    return correct / float(total)
+        result = classifier.classify(email)
+        is_corr_answ = email.label == result
+        if is_corr_answ:
+            correct_counts[result] = correct_counts[result] + 1
+        else:
+            incorrect_counts[result] = incorrect_counts[result] + 1
+    precision = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['SPAM'])
+    recall = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['HAM'])
+    return 1 - precision, 2 * precision * recall / (precision + recall)
 
 
 if __name__ == '__main__':
