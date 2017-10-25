@@ -120,4 +120,5 @@ if __name__ == '__main__':
             if j != i:
                 train_data += data[j]
         classifier = train(train_data)
-        print (test(classifier, test_data))
+        dh, f1, acc = ["{0:0.5f}".format(i) for i in test(classifier, test_data)]
+        print "{} -- {} -- {}".format(dh, f1, acc)
