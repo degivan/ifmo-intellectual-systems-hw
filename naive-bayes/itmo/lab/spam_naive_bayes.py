@@ -37,7 +37,7 @@ class Classifier(object):
     def classify(self, email):
         is_spam = self.cond_email(email, True)
         is_ham = self.cond_email(email, False)
-        if is_spam < is_ham:
+        if is_spam > is_ham:
             return 'SPAM'
         else:
             return 'HAM'
@@ -52,17 +52,18 @@ class Classifier(object):
             sum -= log(self.cond_subj_word(word, spam), 10 ** (-7))
         for word in email.text:
             sum -= log(self.cond_text_word(word, spam), 10 ** (-7))
+        return sum
 
     def cond_subj_word(self, word, spam):
         word_count = self.subj_w[spam].get(word, 0)
         if word_count == 0:
-            word_count = 1 + 1000 * spam
+            word_count = 1
         return word_count / float(self.subj_wc[spam])
 
     def cond_text_word(self, word, spam):
         word_count = self.text_w[spam].get(word, 0)
         if word_count == 0:
-            word_count = 1 + 1000 * spam
+            word_count = 1
         return word_count / float(self.text_wc[spam])
 
 
@@ -84,6 +85,14 @@ def create_email_obj(title, content):
     return Email(label, subject, text)
 
 
+def test(classifier, test_data):
+    correct = 0
+    total = len(test_data)
+    for email in test_data:
+        correct += email.label == classifier.classify(email)
+    return correct / float(total)
+
+
 if __name__ == '__main__':
     data = [[] for i in range(10)]
     for i in range(1, 11):
@@ -94,6 +103,11 @@ if __name__ == '__main__':
             title = f.title()
             opened_f.close()
             data[i - 1].append(create_email_obj(title, content))
-    classifier = train(data[0])
-    print (classifier.classify(data[1][0]))
-    print (data[1][0].label)
+    for i in range(10):
+        train_data = []
+        test_data = data[i]
+        for j in range(10):
+            if j != i:
+                train_data += data[j]
+        classifier = train(train_data)
+        print (test(classifier, test_data))
