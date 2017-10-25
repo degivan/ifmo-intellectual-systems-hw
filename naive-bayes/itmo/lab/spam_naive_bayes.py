@@ -89,7 +89,7 @@ def test(classifier, test_data):
     correct_counts = {'HAM': 0, 'SPAM': 0}
     incorrect_counts = {'HAM': 0, 'SPAM': 0}
     for email in test_data:
-        result = classifier.classify(email)
+        result = classifier.classify(email, trust_coeff=1.05)
         is_corr_answ = email.label == result
         if is_corr_answ:
             correct_counts[result] = correct_counts[result] + 1
@@ -97,7 +97,9 @@ def test(classifier, test_data):
             incorrect_counts[result] = incorrect_counts[result] + 1
     precision = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['SPAM'])
     recall = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['HAM'])
-    return 1 - precision, 2 * precision * recall / (precision + recall)
+    f1_score = 2 * precision * recall / (precision + recall)
+    accuracy = (correct_counts['SPAM'] + correct_counts['HAM']) / float(len(test_data))
+    return 1 - precision, f1_score, accuracy
 
 
 if __name__ == '__main__':
@@ -110,6 +112,7 @@ if __name__ == '__main__':
             title = f.title()
             opened_f.close()
             data[i - 1].append(create_email_obj(title, content))
+    print("percentage of dismissed ham -- f1-score -- accuracy")
     for i in range(10):
         train_data = []
         test_data = data[i]
