@@ -63,7 +63,7 @@ class Classifier(object):
     def cond_text_word(self, word, spam):
         word_count = self.text_w[spam].get(word, 0)
         if word_count == 0:
-            word_count = 1
+            word_count = 0.000000000001
         return word_count / float(self.text_wc[spam])
 
 
