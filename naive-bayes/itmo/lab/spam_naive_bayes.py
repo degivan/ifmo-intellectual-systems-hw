@@ -63,7 +63,7 @@ class Classifier(object):
     def cond_text_word(self, word, spam):
         word_count = self.text_w[spam].get(word, 0)
         if word_count == 0:
-            word_count = 0.000000000001
+            word_count = 10 ** (-19)
         return word_count / float(self.text_wc[spam])
 
 
@@ -89,7 +89,7 @@ def test(classifier, test_data):
     correct_counts = {'HAM': 0, 'SPAM': 0}
     incorrect_counts = {'HAM': 0, 'SPAM': 0}
     for email in test_data:
-        result = classifier.classify(email, trust_coeff=1.05)
+        result = classifier.classify(email, trust_coeff=1.055)
         is_corr_answ = email.label == result
         if is_corr_answ:
             correct_counts[result] = correct_counts[result] + 1
@@ -100,6 +100,11 @@ def test(classifier, test_data):
     f1_score = 2 * precision * recall / (precision + recall)
     accuracy = (correct_counts['SPAM'] + correct_counts['HAM']) / float(len(test_data))
     return 1 - precision, f1_score, accuracy
+
+
+def print_results(dh, f1, acc):
+    dh_s, f1_s, acc_s = ["{0:0.5f}".format(i) for i in dh, f1, acc]
+    print "{} -- {} -- {}".format(dh_s, f1_s, acc_s)
 
 
 if __name__ == '__main__':
@@ -113,6 +118,7 @@ if __name__ == '__main__':
             opened_f.close()
             data[i - 1].append(create_email_obj(title, content))
     print("percentage of dismissed ham -- f1-score -- accuracy")
+    avg_dh, avg_f1, avg_acc = 0.0, 0.0, 0.0
     for i in range(10):
         train_data = []
         test_data = data[i]
@@ -120,5 +126,10 @@ if __name__ == '__main__':
             if j != i:
                 train_data += data[j]
         classifier = train(train_data)
-        dh, f1, acc = ["{0:0.5f}".format(i) for i in test(classifier, test_data)]
-        print "{} -- {} -- {}".format(dh, f1, acc)
+        dh, f1, acc = test(classifier, test_data)
+        avg_dh += dh
+        avg_f1 += f1
+        avg_acc += acc
+        print_results(dh, f1, acc)
+    print("In average:")
+    print_results(avg_dh / 10, avg_f1 / 10, avg_acc / 10)
