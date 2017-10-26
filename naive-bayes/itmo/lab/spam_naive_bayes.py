@@ -33,6 +33,8 @@ class Classifier(object):
         self.subj_w = subj_w
         self.text_wc = text_wc
         self.text_w = text_w
+        self.total_subj = sum(subj_wc)
+        self.total_text = sum(text_wc)
 
     def classify(self, email, subj_coeff=3.0, trust_coeff=1.05):
         is_spam = self.cond_email(email, True, subj_coeff)
@@ -54,17 +56,16 @@ class Classifier(object):
             sum -= log(self.cond_text_word(word, spam), 10 ** (-7))
         return sum
 
-    def cond_subj_word(self, word, spam):
+    def cond_subj_word(self, word, spam, alpha=10 ** (-19)):
         word_count = self.subj_w[spam].get(word, 0)
         if word_count == 0:
-            word_count = 1
-        return word_count / float(self.subj_wc[spam])
+            word_count += alpha
+        return word_count / float(self.subj_wc[spam] + alpha * self.total_subj)
 
-    def cond_text_word(self, word, spam):
+    def cond_text_word(self, word, spam, alpha=10 ** (-19)):
         word_count = self.text_w[spam].get(word, 0)
-        if word_count == 0:
-            word_count = 10 ** (-19)
-        return word_count / float(self.text_wc[spam])
+        word_count += alpha
+        return word_count / float(self.text_wc[spam] + alpha * self.total_text)
 
 
 class Email(object):
