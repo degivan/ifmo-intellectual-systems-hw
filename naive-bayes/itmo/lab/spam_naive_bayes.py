@@ -2,9 +2,8 @@ import os
 
 from math import log
 
-from scipy.stats import norm
-import matplotlib.mlab as mlab
 import matplotlib.pyplot as plt
+
 
 def train(train_data):
     total = 0
@@ -39,13 +38,13 @@ class Classifier(object):
         self.total_subj = sum(subj_wc)
         self.total_text = sum(text_wc)
 
-    def classify(self, email, subj_coeff=3.0, trust_coeff=1.05):
+    def classify(self, email, subj_coeff=3.0, trust_coeff=0.0):
         is_spam = self.cond_email(email, True, subj_coeff)
         is_ham = self.cond_email(email, False, subj_coeff)
-        if trust_coeff * is_spam > is_ham:
-            return 'SPAM', is_spam, is_ham
+        if is_spam + trust_coeff > is_ham:
+            return 'SPAM'
         else:
-            return 'HAM', is_spam, is_ham
+            return 'HAM'
 
     def cond_email(self, email, spam, subj_coeff):
         sum = 0.0
@@ -89,25 +88,23 @@ def create_email_obj(title, content):
     return Email(label, subject, text)
 
 
-def test(classifier, test_data):
+def test(classifier, test_data, trust_coeff=0.0):
     correct_counts = {'HAM': 0, 'SPAM': 0}
     incorrect_counts = {'HAM': 0, 'SPAM': 0}
-    spam_res = []
-    ham_res = []
     for email in test_data:
-        result, spam_p, ham_p = classifier.classify(email, trust_coeff=1.055)
-        spam_res.append(spam_p)
-        ham_res.append(ham_p)
+        result = classifier.classify(email, trust_coeff=trust_coeff)
         is_corr_answ = email.label == result
         if is_corr_answ:
             correct_counts[result] = correct_counts[result] + 1
         else:
             incorrect_counts[result] = incorrect_counts[result] + 1
+    total = float(len(test_data))
+    spe = correct_counts['HAM'] / float(correct_counts['HAM'] + incorrect_counts['SPAM'])
     precision = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['SPAM'])
     recall = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['HAM'])
     f1_score = 2 * precision * recall / (precision + recall)
-    accuracy = (correct_counts['SPAM'] + correct_counts['HAM']) / float(len(test_data))
-    return 1 - precision, f1_score, accuracy, spam_res, ham_res
+    accuracy = (correct_counts['SPAM'] + correct_counts['HAM']) / total
+    return 1 - precision, f1_score, accuracy, spe, recall
 
 
 def print_results(dh, f1, acc):
@@ -126,41 +123,29 @@ if __name__ == '__main__':
             opened_f.close()
             data[i - 1].append(create_email_obj(title, content))
     print("percentage of dismissed ham -- f1-score -- accuracy")
-    avg_dh, avg_f1, avg_acc = 0.0, 0.0, 0.0
-    spam_results = []
-    ham_results =[]
-    for i in range(10):
-        train_data = []
-        test_data = data[i]
-        for j in range(10):
-            if j != i:
-                train_data += data[j]
-        classifier = train(train_data)
-        dh, f1, acc, spam_res, ham_res = test(classifier, test_data)
-        spam_results += spam_res
-        ham_results += ham_res
-        avg_dh += dh
-        avg_f1 += f1
-        avg_acc += acc
-        print_results(dh, f1, acc)
-    print("In average:")
-    print_results(avg_dh / 10, avg_f1 / 10, avg_acc / 10)
-    (mu1, sigma1) = norm.fit(spam_results)
-    (mu2, sigma2) = norm.fit(ham_results)
-    mu2, sigma2 = -mu2, sigma2
-    n, bins1, patches = plt.hist(spam_results, 70, normed=1, facecolor='green', alpha=0.75)
-    n, bins2, patches = plt.hist([-x for x in ham_results], 70, normed=1, facecolor='yellow', alpha=0.75)
-    # add a 'best fit' line
-    add_points1 = [-x for x in bins1]
-    add_points1.reverse()
-    add_points2 = [-x for x in bins2]
-    add_points2.reverse()
-    y1 = mlab.normpdf(bins1 + add_points1, mu1, sigma1)
-    y2 = mlab.normpdf(bins2 + add_points2, mu2, sigma2)
-    plt.plot(bins1 + add_points1, y1, 'r--', linewidth=2)
-    plt.plot(bins2 + add_points2, y2, 'b--', linewidth=2)
-
-    # plot
+    x_axis = []
+    y_axis = []
+    for coeff in [-35 + x for x in range(70)]:
+        avg_dh, avg_f1, avg_acc = 0.0, 0.0, 0.0
+        avg_spe = 0.0
+        avg_sen = 0.0
+        for i in range(10):
+            train_data = []
+            test_data = data[i]
+            for j in range(10):
+                if j != i:
+                    train_data += data[j]
+            classifier = train(train_data)
+            dh, f1, acc, spe, sen = test(classifier, test_data, trust_coeff=coeff)
+            avg_spe += 1 - spe
+            avg_sen += sen
+            avg_dh += dh
+            avg_f1 += f1
+            avg_acc += acc
+        print("In average:")
+        print_results(avg_dh / 10, avg_f1 / 10, avg_acc / 10)
+        x_axis.append(avg_spe / 10)
+        y_axis.append(avg_sen / 10)
+    plt.plot(x_axis, y_axis, 'ro')
     plt.grid(True)
-
     plt.show()
