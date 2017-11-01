@@ -38,10 +38,10 @@ class Classifier(object):
         self.total_subj = sum(subj_wc)
         self.total_text = sum(text_wc)
 
-    def classify(self, email, subj_coeff=3.0, trust_coeff=0.0):
+    def classify(self, email, subj_coeff=3.0, trust_coeff=1.0):
         is_spam = self.cond_email(email, True, subj_coeff)
         is_ham = self.cond_email(email, False, subj_coeff)
-        if is_spam + trust_coeff > is_ham:
+        if trust_coeff * is_spam > is_ham:
             return 'SPAM'
         else:
             return 'HAM'
@@ -88,7 +88,7 @@ def create_email_obj(title, content):
     return Email(label, subject, text)
 
 
-def test(classifier, test_data, trust_coeff=0.0):
+def test(classifier, test_data, trust_coeff=1.0):
     correct_counts = {'HAM': 0, 'SPAM': 0}
     incorrect_counts = {'HAM': 0, 'SPAM': 0}
     for email in test_data:
@@ -125,7 +125,7 @@ if __name__ == '__main__':
     print("percentage of dismissed ham -- f1-score -- accuracy")
     x_axis = []
     y_axis = []
-    for coeff in [-35 + x for x in range(70)]:
+    for coeff in [1.05 + 0.005 * x for x in range(20)]:
         avg_dh, avg_f1, avg_acc = 0.0, 0.0, 0.0
         avg_spe = 0.0
         avg_sen = 0.0
