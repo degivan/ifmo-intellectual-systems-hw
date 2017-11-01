@@ -2,6 +2,9 @@ import os
 
 from math import log
 
+from scipy.stats import norm
+import matplotlib.mlab as mlab
+import matplotlib.pyplot as plt
 
 def train(train_data):
     total = 0
@@ -40,9 +43,9 @@ class Classifier(object):
         is_spam = self.cond_email(email, True, subj_coeff)
         is_ham = self.cond_email(email, False, subj_coeff)
         if trust_coeff * is_spam > is_ham:
-            return 'SPAM'
+            return 'SPAM', is_spam, is_ham
         else:
-            return 'HAM'
+            return 'HAM', is_spam, is_ham
 
     def cond_email(self, email, spam, subj_coeff):
         sum = 0.0
@@ -89,8 +92,12 @@ def create_email_obj(title, content):
 def test(classifier, test_data):
     correct_counts = {'HAM': 0, 'SPAM': 0}
     incorrect_counts = {'HAM': 0, 'SPAM': 0}
+    spam_res = []
+    ham_res = []
     for email in test_data:
-        result = classifier.classify(email, trust_coeff=1.055)
+        result, spam_p, ham_p = classifier.classify(email, trust_coeff=1.055)
+        spam_res.append(spam_p)
+        ham_res.append(ham_p)
         is_corr_answ = email.label == result
         if is_corr_answ:
             correct_counts[result] = correct_counts[result] + 1
@@ -100,7 +107,7 @@ def test(classifier, test_data):
     recall = correct_counts['SPAM'] / float(correct_counts['SPAM'] + incorrect_counts['HAM'])
     f1_score = 2 * precision * recall / (precision + recall)
     accuracy = (correct_counts['SPAM'] + correct_counts['HAM']) / float(len(test_data))
-    return 1 - precision, f1_score, accuracy
+    return 1 - precision, f1_score, accuracy, spam_res, ham_res
 
 
 def print_results(dh, f1, acc):
@@ -120,6 +127,8 @@ if __name__ == '__main__':
             data[i - 1].append(create_email_obj(title, content))
     print("percentage of dismissed ham -- f1-score -- accuracy")
     avg_dh, avg_f1, avg_acc = 0.0, 0.0, 0.0
+    spam_results = []
+    ham_results =[]
     for i in range(10):
         train_data = []
         test_data = data[i]
@@ -127,10 +136,30 @@ if __name__ == '__main__':
             if j != i:
                 train_data += data[j]
         classifier = train(train_data)
-        dh, f1, acc = test(classifier, test_data)
+        dh, f1, acc, spam_res, ham_res = test(classifier, test_data)
+        spam_results += spam_res
+        ham_results += ham_res
         avg_dh += dh
         avg_f1 += f1
         avg_acc += acc
         print_results(dh, f1, acc)
     print("In average:")
     print_results(avg_dh / 10, avg_f1 / 10, avg_acc / 10)
+    (mu1, sigma1) = norm.fit(spam_results)
+    (mu2, sigma2) = norm.fit(ham_results)
+    mu2, sigma2 = -mu2, sigma2
+    n, bins1, patches = plt.hist(spam_results, 70, normed=1, facecolor='green', alpha=0.75)
+    n, bins2, patches = plt.hist([-x for x in ham_results], 70, normed=1, facecolor='yellow', alpha=0.75)
+    # add a 'best fit' line
+    y1 = mlab.normpdf(bins1, mu1, sigma1)
+    y2 = mlab.normpdf(bins2, mu2, sigma2)
+    plt.plot(bins1, y1, 'r--', linewidth=2)
+    plt.plot(bins2, y2, 'b--', linewidth=2)
+
+    # plot
+    plt.xlabel('Smarts')
+    plt.ylabel('Probability')
+    plt.title(r'$\mathrm{Histogram\ of\ IQ:}\ \mu=%.3f,\ \sigma=%.3f$' % (mu1, sigma1))
+    plt.grid(True)
+
+    plt.show()
