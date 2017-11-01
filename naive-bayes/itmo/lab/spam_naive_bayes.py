@@ -151,15 +151,16 @@ if __name__ == '__main__':
     n, bins1, patches = plt.hist(spam_results, 70, normed=1, facecolor='green', alpha=0.75)
     n, bins2, patches = plt.hist([-x for x in ham_results], 70, normed=1, facecolor='yellow', alpha=0.75)
     # add a 'best fit' line
-    y1 = mlab.normpdf(bins1, mu1, sigma1)
-    y2 = mlab.normpdf(bins2, mu2, sigma2)
-    plt.plot(bins1, y1, 'r--', linewidth=2)
-    plt.plot(bins2, y2, 'b--', linewidth=2)
+    add_points1 = [-x for x in bins1]
+    add_points1.reverse()
+    add_points2 = [-x for x in bins2]
+    add_points2.reverse()
+    y1 = mlab.normpdf(bins1 + add_points1, mu1, sigma1)
+    y2 = mlab.normpdf(bins2 + add_points2, mu2, sigma2)
+    plt.plot(bins1 + add_points1, y1, 'r--', linewidth=2)
+    plt.plot(bins2 + add_points2, y2, 'b--', linewidth=2)
 
     # plot
-    plt.xlabel('Smarts')
-    plt.ylabel('Probability')
-    plt.title(r'$\mathrm{Histogram\ of\ IQ:}\ \mu=%.3f,\ \sigma=%.3f$' % (mu1, sigma1))
     plt.grid(True)
 
     plt.show()
