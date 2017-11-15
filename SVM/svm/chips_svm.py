@@ -1,7 +1,7 @@
 from random import shuffle
 
-import numpy as np
 from dots import *
+from svm import *
 
 
 def get_features(dot, rules):
@@ -9,7 +9,7 @@ def get_features(dot, rules):
 
 
 def get_X(dots):
-    return np.array([get_features(d, [get_x, get_y, get_square_sum]) for d in dots])
+    return np.array([get_features(d, [get_x, get_y]) for d in dots])
 
 
 def get_Y(dots):
@@ -34,6 +34,27 @@ def filter_index(X, index):
     return [X[i] for i in index]
 
 
+
+def linear():
+    return lambda x, y: np.inner(x, y)
+
+
+def get_results(predictor, X):
+    return [predictor.predict(x) for x in X]
+
+
+def count_f1(theor_Y, Y, pos_value):
+    matrix = [[0, 0], [0, 0]]
+    for i in range(len(Y)):
+        matrix[Y(i) == pos_value][theor_Y(i) == pos_value] += 1
+    print matrix
+
+
+def count_metrics(predictor, X, Y):
+    theor_Y = get_results(predictor, X)
+    print count_f1(theor_Y, Y, 1)
+
+
 if __name__ == '__main__':
     f = file('../chips.txt')
     dots = [Dot(line.split(',')) for line in f.readlines()]
@@ -44,4 +65,7 @@ if __name__ == '__main__':
         train_Y = filter_index(Y, train_index)
         test_X = filter_index(X, test_index)
         test_Y = filter_index(Y, test_index)
-        # only classification and metrics left
+        trainer = SVMTrainer(linear(), 0.0005)
+        predictor = trainer.train(train_X, train_Y)
+        count_metrics(predictor, test_X, test_Y)
+        # only classification left
