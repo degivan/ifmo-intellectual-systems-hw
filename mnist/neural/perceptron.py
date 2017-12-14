@@ -9,6 +9,7 @@ class NeuralNetwork(object):
         self.num_layers = len(layers)
         self.activation = sigmoid
         self.dactivation = dsigmoid
+        self.w = [np.random.randn(self.layers[i + 1], self.layers[i]) for i in range(self.num_layers - 1)]
 
     def predict(self, X):
         res = []
@@ -18,7 +19,6 @@ class NeuralNetwork(object):
         return res
 
     def train(self, X, y, max_iter=100000, learning_rate=0.5):
-        self.w = [np.random.randn(self.layers[i + 1], self.layers[i]) for i in range(self.num_layers - 1)]
         for j in range(max_iter):
             curid = random.randint(0, len(X) - 1)
             self._forward(X[curid])

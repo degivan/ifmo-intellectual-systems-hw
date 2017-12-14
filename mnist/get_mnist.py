@@ -8,7 +8,6 @@ import os
 import numpy as np
 import tensorflow as tf
 
-SOURCE_URL = 'http://yann.lecun.com/exdb/mnist/'
 WORK_DIRECTORY = 'data'
 IMAGE_SIZE = 28
 NUM_CHANNELS = 1

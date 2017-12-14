@@ -3,6 +3,9 @@ from __future__ import print_function
 from collections import defaultdict
 
 import numpy as np
+import sys
+
+from PIL import Image
 
 from get_mnist import get_data
 from neural.perceptron import NeuralNetwork
@@ -17,7 +20,7 @@ def to_vector(Y):
     return np.array(res)
 
 
-def print_acc(resY, testY):
+def print_f1(resY, testY):
     tp = defaultdict(int)
     fp = defaultdict(int)
     fn = defaultdict(int)
@@ -41,4 +44,22 @@ if __name__ == '__main__':
     nn.train(trainX, to_vector(trainY), max_iter=500000, learning_rate=0.1)
     resY = nn.predict(testX)
 
-    print_acc(resY, testY)
+    print_f1(resY, testY)
+
+    while True:
+        filename = input("Enter file name:")
+        if filename == '0':
+            sys.exit(0)
+        img = Image.open('data/' + filename).convert('1')
+        arr = np.array(img).reshape(-1, 784)
+        features = []
+        for val in arr[0]:
+            if val:
+                features.append(0.5)
+            else:
+                features.append(-0.5)
+        label = filename.split('_')[1][0]
+        res = str(nn.predict([features])[0])
+        print('Before: actual: {}, result: {}'.format(label, res))
+        nn.train(np.array([features]), to_vector(np.array([int(label)])), max_iter=1)
+        print('After: actual: {}, result: {}'.format(label, res))
